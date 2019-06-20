@@ -61,7 +61,7 @@ class DataFlowBuilder {
         Thread {
             checkForLoop(nodeBuilderMapping)
             checkForOrphanNodes(nodeBuilderMapping)
-//            checkForSingleResult(nodeBuilderMapping)
+            checkForResultNode(nodeBuilderMapping)
         }.start()
     }
 
@@ -71,16 +71,17 @@ class DataFlowBuilder {
     }
 
     /* Optional check, just to restrict to one final output */
-    private fun checkForSingleResult(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
+    private fun checkForResultNode(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
         val endNodes = nodeBuilderMapping.values.filter { it.getOutgoingNodes().isNullOrEmpty() }
         val endNodesCount = endNodes.size
 
         if (endNodesCount == 0) {
             throw FlowException("No result node found")
 
-        } else if (endNodesCount > 1) {
-            throw FlowException("Workflow contain only one result node")
         }
+//        else if (endNodesCount > 1) {
+//            throw FlowException("Workflow contain only one result node")
+//        }
     }
 
     private fun checkForLoop(builderMapping: MutableMap<String, NodeBuilder>) {
