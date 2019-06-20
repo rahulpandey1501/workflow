@@ -60,8 +60,14 @@ class DataFlowBuilder {
     private fun sanity(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
         Thread {
             checkForLoop(nodeBuilderMapping)
-            checkForSingleResult(nodeBuilderMapping)
+            checkForOrphanNodes(nodeBuilderMapping)
+//            checkForSingleResult(nodeBuilderMapping)
         }.start()
+    }
+
+    private fun checkForOrphanNodes(mapping: MutableMap<String, NodeBuilder>) {
+        val orphanNode = mapping.filterValues { it.getIncomingNodes().isEmpty() && it.getOutgoingNodes().isEmpty() }.values.firstOrNull()
+        orphanNode?.let { throw FlowException("Workflow orphan node found Node: ${Utils.getName(orphanNode.javaClass)}") }
     }
 
     /* Optional check, just to restrict to one final output */
@@ -74,15 +80,8 @@ class DataFlowBuilder {
 
         } else if (endNodesCount > 1) {
             throw FlowException("Workflow contain only one result node")
-
-        } else {
-            val endNode = endNodes[0]
-            if (endNode.getIncomingNodes().isEmpty()) {
-                throw FlowException("Workflow orphan node found Node: ${Utils.getName(endNode.javaClass)}")
-            }
         }
     }
-
 
     private fun checkForLoop(builderMapping: MutableMap<String, NodeBuilder>) {
         builderMapping.values.forEach { nodeBuilder ->
