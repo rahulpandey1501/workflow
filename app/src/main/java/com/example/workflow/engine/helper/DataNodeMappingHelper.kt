@@ -3,10 +3,10 @@ package com.example.workflow.engine.helper
 import com.example.workflow.engine.builder.NodeBuilder
 import com.example.workflow.engine.dataflow.Data
 
-class DataNodeMappingHelper {
+class DataNodeMappingHelper(private val nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
 
     // data to NodeBuilder dependencies mapping
-    var dataNodesMapping: MutableMap<String, Pair<Data, Set<NodeBuilder>>> = hashMapOf()
+    private var dataNodesMapping: MutableMap<String, Pair<Data, Set<NodeBuilder>>> = hashMapOf()
 
     private fun has(dataId: String): Boolean = dataNodesMapping.containsKey(dataId)
 
@@ -29,6 +29,10 @@ class DataNodeMappingHelper {
             dataNodesMapping[dataId] = Pair(data, setOf(nodeBuilder))
 
         }
+    }
+
+    fun getResultNode(): NodeBuilder {
+        return nodeBuilderMapping.values.first { it.getOutgoingNodes().isNullOrEmpty() }
     }
 
 }

@@ -10,20 +10,40 @@ class ExecutionTest  {
     private val testDataB: TestDataB = TestDataB()
     private val testDataC: TestDataC = TestDataC()
 
+    private val nodeA = NodeBuilderA()
+    private val nodeB = NodeBuilderB()
+    private val nodeC = NodeBuilderC()
 
     fun start() {
 
         val dataFlowManager = DataFlowBuilder()
-            .register(NodeBuilderA(), testDataA, arrayOf(testData0))
-            .register(NodeBuilderB(), testDataB, arrayOf(testDataA))
-            .register(NodeBuilderC(), testDataC, arrayOf(testDataA, testDataB))
+            .register(nodeA, testDataA, arrayOf(testData0))
+            .register(nodeB, testDataB, arrayOf(testDataA))
+            .register(nodeC, testDataC, arrayOf(testDataA, testDataB))
             .build()
-
 
         // execute data
         dataFlowManager.execute(testData0)
-        dataFlowManager.execute(testDataA)
-        dataFlowManager.execute(testDataB)
+
+
+        Thread {
+            Thread.sleep(3000)
+            testDataA.test1 = null
+            dataFlowManager.execute(testDataA)
+
+            Thread.sleep(1000)
+            testDataB.test1 = null
+            dataFlowManager.execute(testDataA)
+
+            Thread.sleep(1000)
+            testDataA.test1 = "Test1"
+            testDataB.test1 = "Test2"
+            dataFlowManager.execute(testDataA)
+
+        }.start()
+
+//        dataFlowManager.traceWorkFlowStatus()
+//        dataFlowManager.traceWorkFlowStatus(nodeB)
 
     }
 }

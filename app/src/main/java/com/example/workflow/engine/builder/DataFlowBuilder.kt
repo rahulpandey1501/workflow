@@ -5,14 +5,15 @@ import com.example.workflow.engine.dataflow.Data
 import com.example.workflow.engine.dataflow.DataFlowExecutor
 import com.example.workflow.engine.dataflow.DataFlowManager
 import com.example.workflow.engine.dataflow.DataFlowManagerImpl
+import com.example.workflow.engine.exception.FlowException
+import com.example.workflow.engine.exception.LoopDetectionException
 import com.example.workflow.engine.helper.DataNodeMappingHelper
 
 // DataFlow
 class DataFlowBuilder {
 
-    // NodeBuilder mapping
     private var nodeBuilderMapping: MutableMap<String, NodeBuilder> = hashMapOf() // node builder mapping
-    private val dataNodeMappingHelper = DataNodeMappingHelper()
+    private val dataNodeMappingHelper = DataNodeMappingHelper(nodeBuilderMapping)
 
     // data flow helpers
     var dataFlowExecutor = DataFlowExecutor(dataNodeMappingHelper)
@@ -35,6 +36,7 @@ class DataFlowBuilder {
 
     fun build(): DataFlowManager {
         generateNodeNavigator(nodeBuilderMapping)
+        sanity(nodeBuilderMapping)
         return dataFlowManager
     }
 
@@ -51,6 +53,43 @@ class DataFlowBuilder {
                 // build NodeNavigator
                 currentNodeBuilder.getNodeContract().addOutgoing(nodeBuilder)
                 nodeBuilder.getNodeContract().addIncoming(currentNodeBuilder)
+            }
+        }
+    }
+
+    private fun sanity(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
+        Thread {
+            checkForLoop(nodeBuilderMapping)
+            checkForSingleResult(nodeBuilderMapping)
+        }.start()
+    }
+
+    /* Optional check, just to restrict to one final output */
+    private fun checkForSingleResult(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
+        val endNodes = nodeBuilderMapping.values.filter { it.getOutgoingNodes().isNullOrEmpty() }
+        val endNodesCount = endNodes.size
+
+        if (endNodesCount == 0) {
+            throw FlowException("No result node found")
+
+        } else if (endNodesCount > 1) {
+            throw FlowException("Workflow contain only one result node")
+
+        } else {
+            val endNode = endNodes[0]
+            if (endNode.getIncomingNodes().isEmpty()) {
+                throw FlowException("Workflow orphan node found Node: ${Utils.getName(endNode.javaClass)}")
+            }
+        }
+    }
+
+
+    private fun checkForLoop(builderMapping: MutableMap<String, NodeBuilder>) {
+        builderMapping.values.forEach { nodeBuilder ->
+            nodeBuilder.getOutgoingNodes().forEach {
+                if (it.getOutgoingNodes().contains(nodeBuilder)) {
+                    throw LoopDetectionException(it, nodeBuilder)
+                }
             }
         }
     }

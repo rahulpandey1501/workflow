@@ -8,6 +8,8 @@ interface NodeContract {
     fun getNodeData(): Data
     fun getDataId(): String
     fun getNodeState(): NodeState
+    fun getNodeMessage(): String?
+    fun getNodeMeta(): NodeMeta
     fun addIncoming(nodeBuilder: NodeBuilder)
     fun addOutgoing(nodeBuilder: NodeBuilder)
     fun setNodeState(nodeState: NodeState)
@@ -15,4 +17,5 @@ interface NodeContract {
     fun getOutgoingNodes(): MutableCollection<NodeBuilder>
     fun getIncomingNode(dataId: String): NodeBuilder?
     fun getOutgoingNode(dataId: String): NodeBuilder?
+    fun setNodeStateMessage(message: String?)
 }

@@ -8,21 +8,7 @@ abstract class DataFlowManager(var dataNodeMappingHelper: DataNodeMappingHelper)
 
     abstract fun execute(data: Data)
     abstract fun execute(nodeBuilder: NodeBuilder)
-
-    fun updateNodeState(newNodeState: NodeState, nodeBuilder: NodeBuilder) {
-
-        when (newNodeState) {
-
-            NodeState.VALID -> publishResult(newNodeState, nodeBuilder)
-
-            else -> if (nodeBuilder.getNodeContract().getNodeState() == NodeState.VALID) {
-                publishResult(newNodeState, nodeBuilder)
-            }
-        }
-    }
-
-    private fun publishResult(nodeState: NodeState, nodeBuilder: NodeBuilder) {
-        execute(nodeBuilder)
-        nodeBuilder.getNodeContract().setNodeState(nodeState)
-    }
+    abstract fun updateNodeState(newNodeState: NodeState, nodeBuilder: NodeBuilder)
+    abstract fun traceWorkFlowStatus()
+    abstract fun traceWorkFlowStatus(nodeBuilder: NodeBuilder)
 }

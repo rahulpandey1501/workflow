@@ -14,6 +14,10 @@ class NodeDataContext(
 
     override fun getNodeState() = nodeMeta.state
 
+    override fun getNodeMessage(): String? = nodeMeta.stateMessage
+
+    override fun getNodeMeta(): NodeMeta = nodeMeta
+
     override fun addIncoming(nodeBuilder: NodeBuilder) {
         nodeNavigation.incoming[nodeBuilder.getNodeContract().getDataId()] = nodeBuilder
     }
@@ -32,5 +36,9 @@ class NodeDataContext(
 
     override fun setNodeState(nodeState: NodeState) {
         nodeMeta.state = nodeState
+    }
+
+    override fun setNodeStateMessage(message: String?) {
+        nodeMeta.stateMessage = message
     }
 }

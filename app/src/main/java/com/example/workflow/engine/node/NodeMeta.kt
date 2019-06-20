@@ -7,12 +7,11 @@ enum class NodeState { IDLE, VALID, INVALID, WAITING }
 
 class NodeMeta(
     var result: Data,
-    var state: NodeState = NodeState.IDLE
+    var state: NodeState = NodeState.IDLE,
+    var stateMessage: String? = null
 )
 
 class NodeNavigator {
-    var incomingData: MutableMap<String, Data> = hashMapOf()
-
     var incoming: MutableMap<String, NodeBuilder> = hashMapOf()
     var outgoing: MutableMap<String, NodeBuilder> = hashMapOf()
 }
