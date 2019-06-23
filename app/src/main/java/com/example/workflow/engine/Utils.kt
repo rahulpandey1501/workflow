@@ -13,6 +13,10 @@ object Utils {
         return findNodeBuilderAnnotations(nodeBuilder::class.java).outgoing
     }
 
+    fun getOptionalNodeId(nodeBuilder: NodeBuilder) : Array<KClass<out Data>> {
+        return findNodeBuilderAnnotations(nodeBuilder::class.java).optional
+    }
+
     fun getConsumerDataId(nodeBuilder: NodeBuilder) : Array<KClass<out Data>> {
         return findNodeBuilderAnnotations(nodeBuilder::class.java).consumes
     }

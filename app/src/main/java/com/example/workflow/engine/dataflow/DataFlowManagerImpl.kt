@@ -21,9 +21,6 @@ class DataFlowManagerImpl(
         val lastState = nodeBuilder.getNodeContract().getNodeState()
         nodeBuilder.getNodeContract().setNodeState(newNodeState)
 
-        if (newNodeState == NodeState.INVALID)
-            nodeBuilder.getNodeContract().getNodeData().reset()
-
         if (lastState != newNodeState) {
             // if state changes and previous state was WAITING (Async) then process the outgoing nodes explicitly
             if (lastState == NodeState.WAITING) {
@@ -34,7 +31,6 @@ class DataFlowManagerImpl(
 
     override fun traceWorkFlowStatus() {
         dataFlowExecutor.traceException()
-
     }
 
     override fun traceWorkFlowStatus(nodeBuilder: NodeBuilder) {

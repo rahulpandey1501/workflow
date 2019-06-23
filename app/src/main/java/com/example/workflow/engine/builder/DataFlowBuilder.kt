@@ -66,7 +66,8 @@ class DataFlowBuilder {
     }
 
     private fun checkForOrphanNodes(mapping: MutableMap<String, NodeBuilder>) {
-        val orphanNode = mapping.filterValues { it.getIncomingNodes().isEmpty() && it.getOutgoingNodes().isEmpty() }.values.firstOrNull()
+        val orphanNode = mapping.filterValues { it.getIncomingData().isEmpty() && it.getOutgoingNodes().isEmpty() }
+            .values.firstOrNull()
         orphanNode?.let { throw FlowException("Workflow orphan node found Node: ${Utils.getName(orphanNode.javaClass)}") }
     }
 
@@ -79,9 +80,6 @@ class DataFlowBuilder {
             throw FlowException("No result node found")
 
         }
-//        else if (endNodesCount > 1) {
-//            throw FlowException("Workflow contain only one result node")
-//        }
     }
 
     private fun checkForLoop(builderMapping: MutableMap<String, NodeBuilder>) {

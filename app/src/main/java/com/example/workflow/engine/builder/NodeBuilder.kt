@@ -25,7 +25,7 @@ abstract class NodeBuilder {
 
     fun getNodeContract() = nodeDataContext as NodeContract
 
-    fun <T : Data> getIncomingNodes(clazz: KClass<T>): T {
+    fun <T : Data> getIncomingData(clazz: KClass<T>): T {
         return dataFlowManager.dataNodeMappingHelper.getData(Utils.getName(clazz.java)) as T
     }
 
@@ -33,7 +33,7 @@ abstract class NodeBuilder {
         return dataFlowManager.dataNodeMappingHelper.getData(Utils.getName(clazz.java)) as T
     }
 
-    fun getIncomingNodes(): MutableCollection<NodeBuilder> {
+    fun getIncomingData(): MutableCollection<NodeBuilder> {
         return nodeDataContext.getIncomingNodes()
     }
 

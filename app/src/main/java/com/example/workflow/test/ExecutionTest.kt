@@ -20,7 +20,9 @@ class ExecutionTest  {
             .register(nodeA, testDataA, arrayOf(testData0))
             .register(nodeB, testDataB, arrayOf(testDataA))
             .register(nodeC, testDataC, arrayOf(testDataA, testDataB))
+            .register(nodeC, testDataC, arrayOf(testDataA, testDataB))
             .build()
+
 
         // execute data
         dataFlowManager.execute(testData0)
@@ -41,9 +43,6 @@ class ExecutionTest  {
             dataFlowManager.execute(testDataA)
 
         }.start()
-
-//        dataFlowManager.traceWorkFlowStatus()
-//        dataFlowManager.traceWorkFlowStatus(nodeB)
 
     }
 }

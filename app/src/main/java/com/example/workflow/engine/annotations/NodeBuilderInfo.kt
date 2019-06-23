@@ -8,6 +8,7 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS)
 annotation class NodeBuilderInfo(
     val consumes: Array<KClass<out Data>>,
+    val optional: Array<KClass<out Data>>,
     val produce: KClass<out Data>,
     val outgoing: Array<KClass<out NodeBuilder>>
 )

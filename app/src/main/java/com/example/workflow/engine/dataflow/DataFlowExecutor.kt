@@ -47,7 +47,7 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
         var propagation = true
 
         // check for valid incoming inputs
-        nodeBuilder.getIncomingNodes().forEach {
+        nodeBuilder.getIncomingData().forEach {
             if (it.getNodeContract().getNodeState() != NodeState.VALID) {
                 propagation = false
                 return@forEach
@@ -76,8 +76,8 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
                         "| Status: ${nodeBuilder.getNodeContract().getNodeState()} | ${nodeBuilder.getNodeContract().getNodeMessage()}"
             )
 
-            queue.addAll(nodeBuilder.getIncomingNodes().minus(visitedNode.toList()))
-            visitedNode.addAll(nodeBuilder.getIncomingNodes())
+            queue.addAll(nodeBuilder.getIncomingData().minus(visitedNode.toList()))
+            visitedNode.addAll(nodeBuilder.getIncomingData())
         }
     }
 

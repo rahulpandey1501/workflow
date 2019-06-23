@@ -1,4 +1,4 @@
-package com.example.workflow.test
+package com.example.workflow
 
 import android.util.Log
 import com.example.workflow.engine.Utils
@@ -11,8 +11,8 @@ import com.example.workflow.engine.node.NodeMeta
 @NodeBuilderInfo(
     consumes = [TestData0::class],
     produce = TestDataA::class,
-    optional = [],
-    outgoing = [NodeBuilderB::class, NodeBuilderC::class]
+    outgoing = [NodeBuilderB::class, NodeBuilderC::class],
+    optional = []
 )
 class NodeBuilderA : NodeBuilder() {
 
@@ -41,15 +41,11 @@ class NodeBuilderA : NodeBuilder() {
     }
 }
 
-@NodeBuilderInfo(
-    consumes = [TestDataA::class],
-    optional = [TestDataC::class],
-    produce = TestDataB::class,
-    outgoing = [NodeBuilderC::class]
-)
+@NodeBuilderInfo(consumes = [TestDataA::class], produce = TestDataB::class, outgoing = [NodeBuilderC::class])
 class NodeBuilderB : NodeBuilder() {
 
     override fun process(resultInstance: Data) {
+
 
         val incomingData = getIncomingData(TestDataA::class)
 
@@ -76,15 +72,11 @@ class NodeBuilderB : NodeBuilder() {
 
 }
 
-@NodeBuilderInfo(
-    consumes = [TestDataA::class, TestDataB::class],
-    produce = TestDataC::class,
-    optional = [],
-    outgoing = []
-)
+@NodeBuilderInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, outgoing = [])
 class NodeBuilderC : NodeBuilder() {
 
     override fun process(resultInstance: Data) {
+
 
         val incomingDataA = getIncomingData(TestDataA::class)
         val incomingDataB = getIncomingData(TestDataB::class)
