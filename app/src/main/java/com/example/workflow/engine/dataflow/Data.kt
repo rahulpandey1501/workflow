@@ -10,14 +10,14 @@ open abstract class Data {
     abstract fun reset()
 }
 
-open abstract class DataAdapter<T : Data>(type: Class<T>) : Data() {
+open abstract class DataAdapter(type: KClass<out Data>) : Data() {
 
     private var identifier: String = Utils.getName(type)
 
     override fun getId(): String = identifier
 }
 
-open class DataHolder<D : Any>(type: KClass<D>, var data: D?) {
+open class DataHolder(type: KClass<out Any>, var data: Data?) {
 
     private var identifier: String = Utils.getName(type.java)
 
