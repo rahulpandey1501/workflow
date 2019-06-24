@@ -22,11 +22,6 @@ class WorkFlowExecutionTest {
     lateinit var testDataB: TestDataB
     lateinit var testDataC: TestDataC
 
-    // nodes
-    lateinit var nodeA: NodeBuilderA
-    lateinit var nodeB: NodeBuilderB
-    lateinit var nodeC: NodeBuilderC
-
     @Before
     fun setup() {
         testData0 = TestData0()
@@ -34,14 +29,10 @@ class WorkFlowExecutionTest {
         testDataB = TestDataB()
         testDataC = TestDataC()
 
-        nodeA = NodeBuilderA()
-        nodeB = NodeBuilderB()
-        nodeC = NodeBuilderC()
-
         dataFlowManager = DataFlowBuilder()
-            .register(nodeA, testDataA, arrayOf(testData0))
-            .register(nodeB, testDataB, arrayOf(testDataA))
-            .register(nodeC, testDataC, arrayOf(testDataA, testDataB))
+            .register(NodeBuilderA(testDataA))
+            .register(NodeBuilderB(testDataB))
+            .register(NodeBuilderC(testDataC))
             .build()
 
     }

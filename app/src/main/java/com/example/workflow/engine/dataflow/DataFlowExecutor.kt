@@ -3,19 +3,19 @@ package com.example.workflow.engine.dataflow
 import android.util.Log
 import com.example.workflow.engine.Utils
 import com.example.workflow.engine.builder.NodeBuilder
-import com.example.workflow.engine.helper.DataNodeMappingHelper
+import com.example.workflow.engine.helper.DataManagerHelper
 import com.example.workflow.engine.node.NodeState
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
+class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
 
     fun process(nodeBuilder: NodeBuilder) {
-        processNodeBuilders(nodeBuilder.getOutgoingNodes())
+        processNodeBuilders(nodeBuilder.getOutgoingNode())
     }
 
     fun process(data: Data) {
-        dataNodeMappingHelper.getOutgoingNodes(data.getId())?.let { processNodeBuilders(it) }
+        dataManagerHelper.getOutgoingNodes(data)?.let { processNodeBuilders(it) }
     }
 
     private fun processNodeBuilders(outgoingNodes: Collection<NodeBuilder>) {
@@ -30,7 +30,7 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
 
             if (shouldProcessNode(nodeBuilder)) {
                 nodeBuilder.process(data)
-                queue.addAll(nodeBuilder.getOutgoingNodes())
+                queue.addAll(nodeBuilder.getOutgoingNode())
 
             } else if (shouldInvalidateDependantNodes(nodeBuilder, lastState)) {
                 propagateNodeState(nodeBuilder, NodeState.INVALID)
@@ -47,7 +47,8 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
         var propagation = true
 
         // check for valid incoming inputs
-        nodeBuilder.getIncomingData().forEach {
+
+        nodeBuilder.getIncomingNodes().forEach {
             if (it.getNodeContract().getNodeState() != NodeState.VALID) {
                 propagation = false
                 return@forEach
@@ -63,7 +64,7 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
     fun traceException(traceNodeBuilder: NodeBuilder? = null) {
 
         val visitedNode = mutableSetOf<NodeBuilder>()
-        val givenNode = traceNodeBuilder ?: dataNodeMappingHelper.getResultNode()
+        val givenNode = traceNodeBuilder ?: dataManagerHelper.getResultNode()
         val queue = LinkedList<NodeBuilder>()
         queue.add(givenNode)
         visitedNode.add(givenNode)
@@ -76,8 +77,8 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
                         "| Status: ${nodeBuilder.getNodeContract().getNodeState()} | ${nodeBuilder.getNodeContract().getNodeMessage()}"
             )
 
-            queue.addAll(nodeBuilder.getIncomingData().minus(visitedNode.toList()))
-            visitedNode.addAll(nodeBuilder.getIncomingData())
+            queue.addAll(nodeBuilder.getIncomingNodes().minus(visitedNode.toList()))
+            visitedNode.addAll(nodeBuilder.getIncomingNodes())
         }
     }
 
@@ -89,8 +90,8 @@ class DataFlowExecutor(val dataNodeMappingHelper: DataNodeMappingHelper) {
 
         while (queue.isNotEmpty()) {
             val nodeBuilder = queue.remove()
-            nodeBuilderSet.addAll(nodeBuilder.getOutgoingNodes())
-            queue.addAll(nodeBuilder.getOutgoingNodes())
+            nodeBuilderSet.addAll(nodeBuilder.getOutgoingNode())
+            queue.addAll(nodeBuilder.getOutgoingNode())
         }
 
         nodeBuilderSet.forEach {

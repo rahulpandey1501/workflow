@@ -1,58 +1,53 @@
 package com.example.workflow.engine.builder
 
 import com.example.workflow.engine.Utils
-import com.example.workflow.engine.dataflow.Data
 import com.example.workflow.engine.dataflow.DataFlowExecutor
 import com.example.workflow.engine.dataflow.DataFlowManager
 import com.example.workflow.engine.dataflow.DataFlowManagerImpl
 import com.example.workflow.engine.exception.FlowException
 import com.example.workflow.engine.exception.LoopDetectionException
-import com.example.workflow.engine.helper.DataNodeMappingHelper
+import com.example.workflow.engine.helper.DataManagerHelper
 
 // DataFlow
 class DataFlowBuilder {
 
-    private var nodeBuilderMapping: MutableMap<String, NodeBuilder> = hashMapOf() // node builder mapping
-    private val dataNodeMappingHelper = DataNodeMappingHelper(nodeBuilderMapping)
+    private val dataHolderHelper = DataManagerHelper()
 
     // data flow helpers
-    var dataFlowExecutor = DataFlowExecutor(dataNodeMappingHelper)
+    var dataFlowExecutor = DataFlowExecutor(dataHolderHelper)
     private var dataFlowManager = DataFlowManagerImpl(dataFlowExecutor)
 
-    fun register(currentNode: NodeBuilder, producer: Data, consumer: Array<Data>): DataFlowBuilder {
-
-        currentNode.init(producer, dataFlowManager)
-
-        // add builders to map, using for generating the outgoing and incoming for a NodeBuilder
-        nodeBuilderMapping[Utils.getName(currentNode.javaClass)] = currentNode
-
-        // add dependency nodes mapping against data identifier
-        consumer.forEach {
-            dataNodeMappingHelper.put(it, currentNode)
-        }
-
+    fun register(nodeBuilder: NodeBuilder): DataFlowBuilder {
+        nodeBuilder.init(dataFlowManager)
+        dataHolderHelper.populate(nodeBuilder)
         return this
     }
 
     fun build(): DataFlowManager {
-        generateNodeNavigator(nodeBuilderMapping)
-        sanity(nodeBuilderMapping)
+        generateNodeNavigator(dataHolderHelper)
+        sanity(dataHolderHelper.getNodeMapping())
         return dataFlowManager
     }
 
-    private fun generateNodeNavigator(builderMapping: MutableMap<String, NodeBuilder>) {
-        builderMapping.forEach {
-            // iterate over all NodeBuilder
+    private fun generateNodeNavigator(dataManagerHelper: DataManagerHelper) {
+        with(dataManagerHelper) {
+            getNodeMapping().forEach {
 
-            val currentNodeBuilder = it.value
+                // iterate over all NodeBuilder
+                val childNode = it.value
 
-            // getting all the possible outgoing nodes
-            Utils.getOutgoingNodeId(currentNodeBuilder).forEach { builderClass ->
-                val nodeBuilder = builderMapping[Utils.getName(builderClass.java)]!!
+                with(Utils.getBuilderAnnotation(childNode)) {
 
-                // build NodeNavigator
-                currentNodeBuilder.getNodeContract().addOutgoing(nodeBuilder)
-                nodeBuilder.getNodeContract().addIncoming(currentNodeBuilder)
+                    // getting all the possible outgoing nodes
+                    consumes.forEach { dataClass ->
+
+                        val parentNode = getNode(dataClass)
+
+                        // build NodeNavigator
+                        childNode.getNodeContract().addIncoming(parentNode, dataClass)
+                        parentNode?.getNodeContract()?.addOutgoing(childNode, produce)
+                    }
+                }
             }
         }
     }
@@ -66,14 +61,14 @@ class DataFlowBuilder {
     }
 
     private fun checkForOrphanNodes(mapping: MutableMap<String, NodeBuilder>) {
-        val orphanNode = mapping.filterValues { it.getIncomingData().isEmpty() && it.getOutgoingNodes().isEmpty() }
+        val orphanNode = mapping.filterValues { it.getIncomingNodes().isEmpty() && it.getOutgoingNode().isEmpty() }
             .values.firstOrNull()
-        orphanNode?.let { throw FlowException("Workflow orphan node found Node: ${Utils.getName(orphanNode.javaClass)}") }
+        orphanNode?.let { throw FlowException("Workflow orphan node found Node: ${Utils.getName(orphanNode::class.java)}") }
     }
 
     /* Optional check, just to restrict to one final output */
     private fun checkForResultNode(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
-        val endNodes = nodeBuilderMapping.values.filter { it.getOutgoingNodes().isNullOrEmpty() }
+        val endNodes = nodeBuilderMapping.values.filter { it.getOutgoingNode().isNullOrEmpty() }
         val endNodesCount = endNodes.size
 
         if (endNodesCount == 0) {
@@ -84,8 +79,8 @@ class DataFlowBuilder {
 
     private fun checkForLoop(builderMapping: MutableMap<String, NodeBuilder>) {
         builderMapping.values.forEach { nodeBuilder ->
-            nodeBuilder.getOutgoingNodes().forEach {
-                if (it.getOutgoingNodes().contains(nodeBuilder)) {
+            nodeBuilder.getOutgoingNode().forEach {
+                if (it.getOutgoingNode().contains(nodeBuilder)) {
                     throw LoopDetectionException(it, nodeBuilder)
                 }
             }

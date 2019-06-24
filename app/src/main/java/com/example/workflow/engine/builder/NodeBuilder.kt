@@ -8,7 +8,7 @@ import com.example.workflow.engine.node.*
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
-abstract class NodeBuilder {
+abstract class NodeBuilder(private var producer: Data) {
 
     lateinit var dataFlowManager: DataFlowManager
     private lateinit var nodeDataContext: NodeDataContext
@@ -16,28 +16,28 @@ abstract class NodeBuilder {
     abstract fun process(resultInstance: Data)
     abstract fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta)
 
-    fun init(producer: Data, dataFlowManager: DataFlowManager) {
+    fun init(producer: Data?, dataFlowManager: DataFlowManager) {
         val node = NodeMeta(producer)
         val nodeNavigator = NodeNavigator()
         this.nodeDataContext = NodeDataContext(node, nodeNavigator)
         this.dataFlowManager = dataFlowManager
     }
 
+    fun init(dataFlowManager: DataFlowManager) {
+        init(producer, dataFlowManager)
+    }
+
     fun getNodeContract() = nodeDataContext as NodeContract
 
-    fun <T : Data> getIncomingData(clazz: KClass<T>): T {
-        return dataFlowManager.dataNodeMappingHelper.getData(Utils.getName(clazz.java)) as T
+    fun <T : Data> getData(clazz: KClass<T>): T? {
+        return dataFlowManager.dataManagerHelper.getNodeData(clazz)
     }
 
-    fun <T : Data> getOutgoingNodes(clazz: KClass<T>): T {
-        return dataFlowManager.dataNodeMappingHelper.getData(Utils.getName(clazz.java)) as T
-    }
-
-    fun getIncomingData(): MutableCollection<NodeBuilder> {
+    fun getIncomingNodes(): MutableCollection<NodeBuilder> {
         return nodeDataContext.getIncomingNodes()
     }
 
-    fun getOutgoingNodes(): MutableCollection<NodeBuilder> {
+    fun getOutgoingNode(): MutableCollection<NodeBuilder> {
         return nodeDataContext.getOutgoingNodes()
     }
 
@@ -55,6 +55,9 @@ abstract class NodeBuilder {
     }
 
     private fun log(newNodeState: NodeState) {
-        Log.d("workflow", "Process: ${Utils.getName(javaClass)} | previous: ${getNodeContract().getNodeState()}  Current: ${newNodeState}")
+        Log.d(
+            "workflow",
+            "Process: ${Utils.getName(javaClass)} | previous: ${getNodeContract().getNodeState()}  Current: ${newNodeState}"
+        )
     }
 }

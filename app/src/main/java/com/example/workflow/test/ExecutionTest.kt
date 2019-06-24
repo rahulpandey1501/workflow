@@ -2,30 +2,22 @@ package com.example.workflow.test
 
 import com.example.workflow.engine.builder.DataFlowBuilder
 
-class ExecutionTest  {
-
-    // Data sets
-    private val testData0: TestData0 = TestData0()
-    private val testDataA: TestDataA = TestDataA()
-    private val testDataB: TestDataB = TestDataB()
-    private val testDataC: TestDataC = TestDataC()
-
-    private val nodeA = NodeBuilderA()
-    private val nodeB = NodeBuilderB()
-    private val nodeC = NodeBuilderC()
+class ExecutionTest {
 
     fun start() {
 
+        val testDataA = TestDataA()
+        val testDataB = TestDataB()
+        val testDataC = TestDataC()
+
         val dataFlowManager = DataFlowBuilder()
-            .register(nodeA, testDataA, arrayOf(testData0))
-            .register(nodeB, testDataB, arrayOf(testDataA))
-            .register(nodeC, testDataC, arrayOf(testDataA, testDataB))
-            .register(nodeC, testDataC, arrayOf(testDataA, testDataB))
+            .register(NodeBuilderA(testDataA))
+            .register(NodeBuilderB(testDataB))
+            .register(NodeBuilderC(testDataC))
             .build()
 
-
         // execute data
-        dataFlowManager.execute(testData0)
+        dataFlowManager.execute(TestData0())
 
 
         Thread {
@@ -43,6 +35,5 @@ class ExecutionTest  {
             dataFlowManager.execute(testDataA)
 
         }.start()
-
     }
 }

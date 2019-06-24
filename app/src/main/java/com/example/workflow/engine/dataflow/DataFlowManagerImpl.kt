@@ -6,9 +6,10 @@ import com.example.workflow.engine.node.NodeState
 class DataFlowManagerImpl(
     private val dataFlowExecutor: DataFlowExecutor
 
-) : DataFlowManager(dataFlowExecutor.dataNodeMappingHelper) {
+) : DataFlowManager(dataFlowExecutor.dataManagerHelper) {
 
     override fun execute(data: Data) {
+        dataManagerHelper.addNodeData(data)
         dataFlowExecutor.process(data)
     }
 

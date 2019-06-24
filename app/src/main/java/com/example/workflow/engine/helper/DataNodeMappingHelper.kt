@@ -32,7 +32,7 @@ class DataNodeMappingHelper(private val nodeBuilderMapping: MutableMap<String, N
     }
 
     fun getResultNode(): NodeBuilder {
-        return nodeBuilderMapping.values.first { it.getOutgoingNodes().isNullOrEmpty() }
+        return nodeBuilderMapping.values.first { it.getOutgoingNode().isNullOrEmpty() }
     }
 
 }

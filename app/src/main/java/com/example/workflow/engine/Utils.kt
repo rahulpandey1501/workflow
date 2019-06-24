@@ -9,19 +9,17 @@ object Utils {
 
     fun getName(clazz: Class<*>): String = clazz.simpleName
 
-    fun getOutgoingNodeId(nodeBuilder: NodeBuilder) : Array<KClass<out NodeBuilder>> {
-        return findNodeBuilderAnnotations(nodeBuilder::class.java).outgoing
+    fun getName(clazz: KClass<out Data>): String = getName(clazz.java)
+
+    fun getName(data: Data) = getName(data.javaClass)
+
+    fun getName(nodeBuilder: NodeBuilder): String = getName(nodeBuilder.javaClass)
+
+    fun getBuilderAnnotation(nodeBuilder: NodeBuilder): NodeBuilderInfo {
+        return getBuilderAnnotation(nodeBuilder.javaClass)
     }
 
-    fun getOptionalNodeId(nodeBuilder: NodeBuilder) : Array<KClass<out Data>> {
-        return findNodeBuilderAnnotations(nodeBuilder::class.java).optional
-    }
-
-    fun getConsumerDataId(nodeBuilder: NodeBuilder) : Array<KClass<out Data>> {
-        return findNodeBuilderAnnotations(nodeBuilder::class.java).consumes
-    }
-
-    private fun findNodeBuilderAnnotations(clazz: Class<out NodeBuilder>): NodeBuilderInfo {
+    fun getBuilderAnnotation(clazz: Class<out NodeBuilder>): NodeBuilderInfo {
         return clazz.annotations.find { it.annotationClass == NodeBuilderInfo::class } as NodeBuilderInfo
     }
 }

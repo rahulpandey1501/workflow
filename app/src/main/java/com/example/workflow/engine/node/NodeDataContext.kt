@@ -1,6 +1,9 @@
 package com.example.workflow.engine.node
 
+import com.example.workflow.engine.Utils
 import com.example.workflow.engine.builder.NodeBuilder
+import com.example.workflow.engine.dataflow.Data
+import kotlin.reflect.KClass
 
 class NodeDataContext(
     private var nodeMeta: NodeMeta,
@@ -8,9 +11,9 @@ class NodeDataContext(
 
 ) : NodeContract {
 
-    override fun getNodeData() = nodeMeta.result
+    override fun getNodeData() = nodeMeta.result!!
 
-    override fun getDataId() = nodeMeta.result.getId()
+    override fun getDataId() = getNodeData().getId()
 
     override fun getNodeState() = nodeMeta.state
 
@@ -18,19 +21,15 @@ class NodeDataContext(
 
     override fun getNodeMeta(): NodeMeta = nodeMeta
 
-    override fun addIncoming(nodeBuilder: NodeBuilder) {
-        nodeNavigation.incoming[nodeBuilder.getNodeContract().getDataId()] = nodeBuilder
+    override fun addIncoming(nodeBuilder: NodeBuilder?, dataClass: KClass<out Data>) {
+        nodeBuilder?.let { nodeNavigation.incoming[Utils.getName(dataClass)] = nodeBuilder }
+    }
+
+    override fun addOutgoing(nodeBuilder: NodeBuilder?, produce: KClass<out Data>) {
+        nodeBuilder?.let { nodeNavigation.outgoing[Utils.getName(produce)] = nodeBuilder }
     }
 
     override fun getIncomingNodes() = nodeNavigation.incoming.values
-
-    override fun getIncomingNode(dataId: String) = nodeNavigation.incoming[dataId]
-
-    override fun getOutgoingNode(dataId: String) = nodeNavigation.outgoing[dataId]
-
-    override fun addOutgoing(nodeBuilder: NodeBuilder) {
-        nodeNavigation.outgoing[nodeBuilder.getNodeContract().getDataId()] = nodeBuilder
-    }
 
     override fun getOutgoingNodes() = nodeNavigation.outgoing.values
 
@@ -40,5 +39,9 @@ class NodeDataContext(
 
     override fun setNodeStateMessage(message: String?) {
         nodeMeta.stateMessage = message
+    }
+
+    override fun setNodeData(data: Data) {
+        nodeMeta.result = data
     }
 }

@@ -11,16 +11,15 @@ import com.example.workflow.engine.node.NodeMeta
 @NodeBuilderInfo(
     consumes = [TestData0::class],
     produce = TestDataA::class,
-    outgoing = [NodeBuilderB::class, NodeBuilderC::class],
     optional = []
 )
-class NodeBuilderA : NodeBuilder() {
+class NodeBuilderA(dataA: TestDataA) : NodeBuilder(dataA) {
 
     override fun process(resultInstance: Data) {
 
-        val incomingData = getIncomingData(TestData0::class)
+        val incomingData = getData(TestData0::class)
 
-        if (null == incomingData.test1 || null == incomingData.test2) {
+        if (null == incomingData?.test1 || null == incomingData.test2) {
             updateNodeState(NodeState.INVALID)
 
         } else {
@@ -41,15 +40,15 @@ class NodeBuilderA : NodeBuilder() {
     }
 }
 
-@NodeBuilderInfo(consumes = [TestDataA::class], produce = TestDataB::class, outgoing = [NodeBuilderC::class])
-class NodeBuilderB : NodeBuilder() {
+@NodeBuilderInfo(consumes = [TestDataA::class], produce = TestDataB::class, optional = [])
+class NodeBuilderB(dataB: TestDataB) : NodeBuilder(dataB) {
 
     override fun process(resultInstance: Data) {
 
 
-        val incomingData = getIncomingData(TestDataA::class)
+        val incomingData = getData(TestDataA::class)
 
-        if (null == incomingData.test1 || null == incomingData.test2) {
+        if (null == incomingData?.test1 || null == incomingData.test2) {
             updateNodeState(NodeState.INVALID)
 
         } else {
@@ -72,16 +71,16 @@ class NodeBuilderB : NodeBuilder() {
 
 }
 
-@NodeBuilderInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, outgoing = [])
-class NodeBuilderC : NodeBuilder() {
+@NodeBuilderInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, optional = [])
+class NodeBuilderC(dataC: TestDataC) : NodeBuilder(dataC) {
 
     override fun process(resultInstance: Data) {
 
 
-        val incomingDataA = getIncomingData(TestDataA::class)
-        val incomingDataB = getIncomingData(TestDataB::class)
+        val incomingDataA = getData(TestDataA::class)
+        val incomingDataB = getData(TestDataB::class)
 
-        if (null == incomingDataA.test1 || null == incomingDataA.test2 || null == incomingDataB.test1 || null == incomingDataB.test2) {
+        if (null == incomingDataA?.test1 || null == incomingDataA.test2 || null == incomingDataB?.test1 || null == incomingDataB.test2) {
             updateNodeState(NodeState.INVALID)
 
         } else {
