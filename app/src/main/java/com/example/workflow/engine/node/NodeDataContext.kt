@@ -41,7 +41,7 @@ class NodeDataContext(
         nodeMeta.stateMessage = message
     }
 
-    override fun setNodeData(data: Data) {
+    override fun setNodeData(data: Data?) {
         nodeMeta.result = data
     }
 }

@@ -11,9 +11,9 @@ class ExecutionTest {
         val testDataC = TestDataC()
 
         val dataFlowManager = DataFlowBuilder()
-            .register(NodeBuilderA(testDataA))
-            .register(NodeBuilderB(testDataB))
-            .register(NodeBuilderC(testDataC))
+            .register(NodeBuilderA(), testDataA)
+            .register(NodeBuilderB(), testDataB)
+            .register(NodeBuilderC(), testDataC)
             .build()
 
         // execute data
@@ -21,6 +21,7 @@ class ExecutionTest {
 
 
         Thread {
+
             Thread.sleep(3000)
             testDataA.test1 = null
             dataFlowManager.execute(testDataA)

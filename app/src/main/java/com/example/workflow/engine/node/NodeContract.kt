@@ -17,5 +17,5 @@ interface NodeContract {
     fun getIncomingNodes(): MutableCollection<NodeBuilder>
     fun getOutgoingNodes(): MutableCollection<NodeBuilder>
     fun setNodeStateMessage(message: String?)
-    fun setNodeData(data: Data)
+    fun setNodeData(data: Data?)
 }

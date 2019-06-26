@@ -1,98 +1,91 @@
 package com.example.workflow
 
-import android.util.Log
-import com.example.workflow.engine.Utils
-import com.example.workflow.engine.dataflow.Data
-import com.example.workflow.engine.builder.NodeBuilder
-import com.example.workflow.engine.node.NodeState
 import com.example.workflow.engine.annotations.NodeBuilderInfo
+import com.example.workflow.engine.builder.NodeBuilder
 import com.example.workflow.engine.node.NodeMeta
+import com.example.workflow.engine.node.NodeState
+import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 
 @NodeBuilderInfo(
     consumes = [TestData0::class],
     produce = TestDataA::class,
     optional = []
 )
-class NodeBuilderA(dataA: TestDataA) : NodeBuilder(dataA) {
+class NodeBuilderA : NodeBuilder() {
 
-    override fun process(resultInstance: Data) {
-
-        val incomingData = getData(TestData0::class)
+    override fun process(callback: NodeProcessorCallback) {
+        val incomingData = callback.getData(TestData0::class)
 
         if (null == incomingData?.test1 || null == incomingData.test2) {
-            updateNodeState(NodeState.INVALID)
+
+            callback.updateNodeStatus(this, NodeState.INVALID)
 
         } else {
-            updateNodeState(NodeState.WAITING, "Async call going for OfferApplicability")
+            callback.updateNodeStatus(this, NodeState.WAITING, "Async call going for OfferApplicability")
 
             Thread(Runnable {
-                val result = resultInstance as TestDataA
+                val result = getResult<TestDataA>()
                 Thread.sleep(500)
                 result.test1 = "HelloFrom_A"
                 result.test2 = "WorldFrom_A"
-                updateNodeState(NodeState.VALID)
+                callback.updateNodeStatus(this, NodeState.VALID)
             }).start()
         }
     }
 
     override fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta) {
-        Log.d("workflow", "StatusUpdated: ${Utils.getName(javaClass)}  $nodeState")
     }
 }
 
 @NodeBuilderInfo(consumes = [TestDataA::class], produce = TestDataB::class, optional = [])
-class NodeBuilderB(dataB: TestDataB) : NodeBuilder(dataB) {
+class NodeBuilderB : NodeBuilder() {
 
-    override fun process(resultInstance: Data) {
+    override fun process(callback: NodeProcessorCallback) {
 
 
-        val incomingData = getData(TestDataA::class)
+        val incomingData = callback.getData(TestDataA::class)
 
         if (null == incomingData?.test1 || null == incomingData.test2) {
-            updateNodeState(NodeState.INVALID)
+            callback.updateNodeStatus(this, NodeState.INVALID)
 
         } else {
-            updateNodeState(NodeState.WAITING)
+            callback.updateNodeStatus(this, NodeState.WAITING)
 
             Thread(Runnable {
                 Thread.sleep(500)
-                val result = resultInstance as TestDataB
+                val result = getResult<TestDataB>()
                 result.test1 = "HelloFrom_B"
                 result.test2 = "WorldFrom_B"
-                updateNodeState(NodeState.VALID)
+                callback.updateNodeStatus(this, NodeState.VALID)
             }).start()
         }
     }
 
     override fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta) {
-
-        Log.d("workflow", "StatusUpdated: ${Utils.getName(javaClass)}  $nodeState")
     }
 
 }
 
 @NodeBuilderInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, optional = [])
-class NodeBuilderC(dataC: TestDataC) : NodeBuilder(dataC) {
+class NodeBuilderC : NodeBuilder() {
 
-    override fun process(resultInstance: Data) {
+    override fun process(callback: NodeProcessorCallback) {
 
 
-        val incomingDataA = getData(TestDataA::class)
-        val incomingDataB = getData(TestDataB::class)
+        val incomingDataA = callback.getData(TestDataA::class)
+        val incomingDataB = callback.getData(TestDataB::class)
 
         if (null == incomingDataA?.test1 || null == incomingDataA.test2 || null == incomingDataB?.test1 || null == incomingDataB.test2) {
-            updateNodeState(NodeState.INVALID)
+            callback.updateNodeStatus(this, NodeState.INVALID)
 
         } else {
-            val result = resultInstance as TestDataC
+            val result = getResult<TestDataC>()
             result.test1 = "HelloFrom_C"
             result.test2 = "WorldFrom_C"
-            updateNodeState(NodeState.VALID)
+            callback.updateNodeStatus(this, NodeState.VALID)
         }
     }
 
     override fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta) {
-
-        Log.d("workflow", "StatusUpdated: ${Utils.getName(javaClass)}  $nodeState")
     }
 }

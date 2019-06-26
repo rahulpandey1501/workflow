@@ -30,9 +30,9 @@ class WorkFlowExecutionTest {
         testDataC = TestDataC()
 
         dataFlowManager = DataFlowBuilder()
-            .register(NodeBuilderA(testDataA))
-            .register(NodeBuilderB(testDataB))
-            .register(NodeBuilderC(testDataC))
+            .register(NodeBuilderA(), testDataA)
+            .register(NodeBuilderB(), testDataB)
+            .register(NodeBuilderC(), testDataC)
             .build()
 
     }

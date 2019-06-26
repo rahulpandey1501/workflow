@@ -1,6 +1,7 @@
 package com.example.workflow.engine.builder
 
 import com.example.workflow.engine.Utils
+import com.example.workflow.engine.dataflow.Data
 import com.example.workflow.engine.dataflow.DataFlowExecutor
 import com.example.workflow.engine.dataflow.DataFlowManager
 import com.example.workflow.engine.dataflow.DataFlowManagerImpl
@@ -14,11 +15,11 @@ class DataFlowBuilder {
     private val dataHolderHelper = DataManagerHelper()
 
     // data flow helpers
-    var dataFlowExecutor = DataFlowExecutor(dataHolderHelper)
+    private var dataFlowExecutor = DataFlowExecutor(dataHolderHelper)
     private var dataFlowManager = DataFlowManagerImpl(dataFlowExecutor)
 
-    fun register(nodeBuilder: NodeBuilder): DataFlowBuilder {
-        nodeBuilder.init(dataFlowManager)
+    fun register(nodeBuilder: NodeBuilder, produce: Data): DataFlowBuilder {
+        nodeBuilder.init(produce)
         dataHolderHelper.populate(nodeBuilder)
         return this
     }

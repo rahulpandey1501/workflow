@@ -1,37 +1,31 @@
 package com.example.workflow.engine.builder
 
-import android.util.Log
-import com.example.workflow.engine.Utils
 import com.example.workflow.engine.dataflow.Data
-import com.example.workflow.engine.dataflow.DataFlowManager
 import com.example.workflow.engine.node.*
-import kotlin.reflect.KClass
+import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 
 @Suppress("UNCHECKED_CAST")
-abstract class NodeBuilder(private var producer: Data) {
+abstract class NodeBuilder {
 
-    lateinit var dataFlowManager: DataFlowManager
     private lateinit var nodeDataContext: NodeDataContext
 
-    abstract fun process(resultInstance: Data)
     abstract fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta)
 
-    fun init(producer: Data?, dataFlowManager: DataFlowManager) {
+    abstract fun process(callback: NodeProcessorCallback)
+
+    fun init(producer: Data?) {
         val node = NodeMeta(producer)
         val nodeNavigator = NodeNavigator()
         this.nodeDataContext = NodeDataContext(node, nodeNavigator)
-        this.dataFlowManager = dataFlowManager
     }
 
-    fun init(dataFlowManager: DataFlowManager) {
-        init(producer, dataFlowManager)
+    fun getNodeContract(): NodeContract {
+        return nodeDataContext
     }
 
-    fun getNodeContract() = nodeDataContext as NodeContract
+    fun <T: Data> getResult(): T = getNodeMeta().result as T
 
-    fun <T : Data> getData(clazz: KClass<T>): T? {
-        return dataFlowManager.dataManagerHelper.getNodeData(clazz)
-    }
+    fun getNodeMeta(): NodeMeta = nodeDataContext.getNodeMeta()
 
     fun getIncomingNodes(): MutableCollection<NodeBuilder> {
         return nodeDataContext.getIncomingNodes()
@@ -41,23 +35,8 @@ abstract class NodeBuilder(private var producer: Data) {
         return nodeDataContext.getOutgoingNodes()
     }
 
-    fun isResultNode(): Boolean = nodeDataContext.getOutgoingNodes().isEmpty()
-
-    fun updateNodeState(newNodeState: NodeState, message: String? = null) {
-
-        log(newNodeState)
-
-        nodeDataContext.setNodeStateMessage(message)
-        onStatusUpdated(newNodeState, getNodeContract().getNodeMeta())
-
-        dataFlowManager.updateNodeState(newNodeState, this)
-
+    fun isResultNode(): Boolean {
+        return nodeDataContext.getOutgoingNodes().isEmpty()
     }
 
-    private fun log(newNodeState: NodeState) {
-        Log.d(
-            "workflow",
-            "Process: ${Utils.getName(javaClass)} | previous: ${getNodeContract().getNodeState()}  Current: ${newNodeState}"
-        )
-    }
 }
