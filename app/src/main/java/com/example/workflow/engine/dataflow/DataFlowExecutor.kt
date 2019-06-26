@@ -42,7 +42,7 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
                     propagateNodeState(nodeBuilder, NodeState.INVALID)
                 }
 
-                if (nodeBuilder.isResultNode() && nodeContract.getNodeState() == NodeState.VALID) {
+                if (nodeBuilder.isTargetNode() && nodeContract.getNodeState() == NodeState.VALID) {
                     Log.d("Workflow", "Workflow completed with the result ${nodeContract.getNodeData()}")
                     traceException()
                 }

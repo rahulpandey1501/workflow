@@ -20,6 +20,6 @@ object Utils {
     }
 
     fun getBuilderAnnotation(clazz: Class<out NodeBuilder>): NodeBuilderInfo {
-        return clazz.annotations.find { it.annotationClass == NodeBuilderInfo::class } as NodeBuilderInfo
+        return clazz.getAnnotation(NodeBuilderInfo::class.java)
     }
 }

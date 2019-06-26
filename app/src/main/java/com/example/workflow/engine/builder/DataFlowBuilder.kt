@@ -18,8 +18,8 @@ class DataFlowBuilder {
     private var dataFlowExecutor = DataFlowExecutor(dataHolderHelper)
     private var dataFlowManager = DataFlowManagerImpl(dataFlowExecutor)
 
-    fun register(nodeBuilder: NodeBuilder, produce: Data): DataFlowBuilder {
-        nodeBuilder.init(produce)
+    fun register(nodeBuilder: NodeBuilder, produce: Data, isTargetNode: Boolean = false): DataFlowBuilder {
+        nodeBuilder.init(produce, isTargetNode)
         dataHolderHelper.populate(nodeBuilder)
         return this
     }
@@ -31,6 +31,7 @@ class DataFlowBuilder {
     }
 
     private fun generateNodeNavigator(dataManagerHelper: DataManagerHelper) {
+
         with(dataManagerHelper) {
             getNodeMapping().forEach {
 
@@ -57,7 +58,7 @@ class DataFlowBuilder {
         Thread {
             checkForLoop(nodeBuilderMapping)
             checkForOrphanNodes(nodeBuilderMapping)
-            checkForResultNode(nodeBuilderMapping)
+            checkForTargetNode(nodeBuilderMapping)
         }.start()
     }
 
@@ -68,13 +69,16 @@ class DataFlowBuilder {
     }
 
     /* Optional check, just to restrict to one final output */
-    private fun checkForResultNode(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
-        val endNodes = nodeBuilderMapping.values.filter { it.getOutgoingNode().isNullOrEmpty() }
-        val endNodesCount = endNodes.size
+    private fun checkForTargetNode(nodeBuilderMapping: MutableMap<String, NodeBuilder>) {
+        val targetNodes = nodeBuilderMapping.values.filter { it.isTargetNode() }
+        val targetNodeCount = targetNodes.size
 
-        if (endNodesCount == 0) {
-            throw FlowException("No result node found")
+        if (targetNodeCount == 0) {
+            throw FlowException("No target node found")
 
+        } else if (targetNodeCount > 1) {
+            val nodes = targetNodes.map { Utils.getName(it) }
+            throw FlowException("More than one target node found $nodes")
         }
     }
 

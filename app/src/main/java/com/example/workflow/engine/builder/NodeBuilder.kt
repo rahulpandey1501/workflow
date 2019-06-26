@@ -8,14 +8,16 @@ import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 abstract class NodeBuilder {
 
     private lateinit var nodeDataContext: NodeDataContext
+    private var isTargetNode: Boolean = false
 
     abstract fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta)
 
     abstract fun process(callback: NodeProcessorCallback)
 
-    fun init(producer: Data?) {
+    fun init(producer: Data?, isTargetNode: Boolean) {
         val node = NodeMeta(producer)
         val nodeNavigator = NodeNavigator()
+        this.isTargetNode = isTargetNode
         this.nodeDataContext = NodeDataContext(node, nodeNavigator)
     }
 
@@ -35,8 +37,5 @@ abstract class NodeBuilder {
         return nodeDataContext.getOutgoingNodes()
     }
 
-    fun isResultNode(): Boolean {
-        return nodeDataContext.getOutgoingNodes().isEmpty()
-    }
-
+    fun isTargetNode() = isTargetNode
 }

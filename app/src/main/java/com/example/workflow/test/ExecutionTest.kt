@@ -13,12 +13,11 @@ class ExecutionTest {
         val dataFlowManager = DataFlowBuilder()
             .register(NodeBuilderA(), testDataA)
             .register(NodeBuilderB(), testDataB)
-            .register(NodeBuilderC(), testDataC)
+            .register(NodeBuilderC(), testDataC, true)
             .build()
 
         // execute data
         dataFlowManager.execute(TestData0())
-
 
         Thread {
 
@@ -36,5 +35,5 @@ class ExecutionTest {
             dataFlowManager.execute(testDataA)
 
         }.start()
-    }
+    };
 }
