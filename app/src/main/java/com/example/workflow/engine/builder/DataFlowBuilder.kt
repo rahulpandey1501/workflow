@@ -24,6 +24,7 @@ class DataFlowBuilder {
      */
     fun register(node: Node, produce: Data, isTargetNode: Boolean = false): DataFlowBuilder {
         node.init(produce, isTargetNode)
+        produce.setId(generateDataId(node, produce))
         dataHolderHelper.populate(node)
         return this
     }
@@ -39,6 +40,10 @@ class DataFlowBuilder {
         generateNodeNavigator(dataHolderHelper)
         sanity(dataHolderHelper.getAllNodes())
         return dataFlowManager
+    }
+
+    private fun generateDataId(node: Node, data: Data): String {
+        return "${Utils.getClassName(data)}_${Utils.getNodeId(node)}"
     }
 
     private fun generateNodeNavigator(dataManagerHelper: DataManagerHelper) {

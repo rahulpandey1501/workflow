@@ -8,8 +8,6 @@ class NodeMeta(var result: Data? = null) {
 }
 
 class NodeNavigator {
-//    var incoming: MutableSet<Node> = hashSetOf()
-//    var outgoing: MutableSet<Node> = hashSetOf()
     var incoming: HashMap<String, Node> = hashMapOf()
     var outgoing: HashMap<String, Node> = hashMapOf()
 }
