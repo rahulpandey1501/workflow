@@ -2,7 +2,7 @@ package com.example.workflow.engine.nodeprocessorcontract
 
 import android.util.Log
 import com.example.workflow.engine.Utils
-import com.example.workflow.engine.builder.NodeBuilder
+import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.dataflow.Data
 import com.example.workflow.engine.dataflow.DataFlowExecutor
 import com.example.workflow.engine.node.NodeState
@@ -15,33 +15,33 @@ class NodeProcessorCallback(private val dataFlowExecutor: DataFlowExecutor) : IN
     }
 
     @Synchronized
-    override fun updateNodeStatus(nodeBuilder: NodeBuilder, nodeState: NodeState, message: String?) {
+    override fun updateNodeStatus(node: Node, nodeState: NodeState, message: String?) {
 
-        log(nodeState, nodeBuilder)
+        log(nodeState, node)
 
-        nodeBuilder.getNodeContract().setNodeStateMessage(message)
-        nodeBuilder.onStatusUpdated(nodeState, nodeBuilder.getNodeMeta())
-        updateNodeState(nodeState, nodeBuilder)
+        node.getNodeContract().setNodeStateMessage(message)
+        node.onStatusUpdated(nodeState, node.getNodeMeta())
+        updateNodeState(nodeState, node)
     }
 
     @Synchronized
-    private fun updateNodeState(newNodeState: NodeState, nodeBuilder: NodeBuilder) {
+    private fun updateNodeState(newNodeState: NodeState, node: Node) {
 
-        val lastState = nodeBuilder.getNodeContract().getNodeState()
-        nodeBuilder.getNodeContract().setNodeState(newNodeState)
+        val lastState = node.getNodeContract().getNodeState()
+        node.getNodeContract().setNodeState(newNodeState)
 
         if (lastState != newNodeState) {
             // if state changes and previous state was WAITING (Async) then process the outgoing nodes explicitly
             if (lastState == NodeState.WAITING) {
-                dataFlowExecutor.process(nodeBuilder.getNodeContract().getNodeData())
+                dataFlowExecutor.process(node.getNodeContract().getNodeData())
             }
         }
     }
 
-    private fun log(newNodeState: NodeState, nodeBuilder: NodeBuilder) {
+    private fun log(newNodeState: NodeState, node: Node) {
         Log.d(
             "workflow",
-            "Process: ${Utils.getName(javaClass)} | previous: ${nodeBuilder.getNodeContract().getNodeState()}  Current: $newNodeState"
+            "Process: ${Utils.getName(javaClass)} | previous: ${node.getNodeContract().getNodeState()}  Current: $newNodeState"
         )
     }
 }

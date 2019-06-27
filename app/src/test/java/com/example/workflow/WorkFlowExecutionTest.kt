@@ -2,9 +2,9 @@ package com.example.workflow
 
 import com.example.workflow.engine.builder.DataFlowBuilder
 import com.example.workflow.engine.dataflow.DataFlowManager
-import com.example.workflow.test.NodeBuilderA
-import com.example.workflow.test.NodeBuilderB
-import com.example.workflow.test.NodeBuilderC
+import com.example.workflow.test.NodeA
+import com.example.workflow.test.NodeB
+import com.example.workflow.test.NodeC
 import com.example.workflow.test.TestData0
 import com.example.workflow.test.TestDataA
 import com.example.workflow.test.TestDataB
@@ -30,9 +30,9 @@ class WorkFlowExecutionTest {
         testDataC = TestDataC()
 
         dataFlowManager = DataFlowBuilder()
-            .register(NodeBuilderA(), testDataA)
-            .register(NodeBuilderB(), testDataB)
-            .register(NodeBuilderC(), testDataC)
+            .register(NodeA(), testDataA)
+            .register(NodeB(), testDataB)
+            .register(NodeC(), testDataC)
             .build()
 
     }

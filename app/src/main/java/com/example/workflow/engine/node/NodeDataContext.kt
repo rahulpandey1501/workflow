@@ -1,7 +1,6 @@
 package com.example.workflow.engine.node
 
 import com.example.workflow.engine.Utils
-import com.example.workflow.engine.builder.NodeBuilder
 import com.example.workflow.engine.dataflow.Data
 import kotlin.reflect.KClass
 
@@ -21,12 +20,12 @@ class NodeDataContext(
 
     override fun getNodeMeta(): NodeMeta = nodeMeta
 
-    override fun addIncoming(nodeBuilder: NodeBuilder?, dataClass: KClass<out Data>) {
-        nodeBuilder?.let { nodeNavigation.incoming[Utils.getName(dataClass)] = nodeBuilder }
+    override fun addIncoming(node: Node?, dataClass: KClass<out Data>) {
+        node?.let { nodeNavigation.incoming[Utils.getName(dataClass)] = node }
     }
 
-    override fun addOutgoing(nodeBuilder: NodeBuilder?, produce: KClass<out Data>) {
-        nodeBuilder?.let { nodeNavigation.outgoing[Utils.getName(produce)] = nodeBuilder }
+    override fun addOutgoing(node: Node?, produce: KClass<out Data>) {
+        node?.let { nodeNavigation.outgoing[Utils.getName(produce)] = node }
     }
 
     override fun getIncomingNodes() = nodeNavigation.incoming.values

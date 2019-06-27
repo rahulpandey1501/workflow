@@ -1,11 +1,11 @@
-package com.example.workflow.engine.builder
+package com.example.workflow.engine.node
 
+import com.example.workflow.engine.Utils
 import com.example.workflow.engine.dataflow.Data
-import com.example.workflow.engine.node.*
 import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 
 @Suppress("UNCHECKED_CAST")
-abstract class NodeBuilder {
+abstract class Node {
 
     private lateinit var nodeDataContext: NodeDataContext
     private var isTargetNode: Boolean = false
@@ -21,6 +21,8 @@ abstract class NodeBuilder {
         this.nodeDataContext = NodeDataContext(node, nodeNavigator)
     }
 
+    fun getId() = Utils.getName(this)
+
     fun getNodeContract(): NodeContract {
         return nodeDataContext
     }
@@ -29,13 +31,15 @@ abstract class NodeBuilder {
 
     fun getNodeMeta(): NodeMeta = nodeDataContext.getNodeMeta()
 
-    fun getIncomingNodes(): MutableCollection<NodeBuilder> {
+    fun getIncomingNodes(): MutableCollection<Node> {
         return nodeDataContext.getIncomingNodes()
     }
 
-    fun getOutgoingNode(): MutableCollection<NodeBuilder> {
+    fun getOutgoingNode(): MutableCollection<Node> {
         return nodeDataContext.getOutgoingNodes()
     }
 
     fun isTargetNode() = isTargetNode
+
+    open fun isExternalNode() = false
 }

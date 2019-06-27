@@ -1,6 +1,6 @@
 package com.example.workflow.engine.dataflow
 
-import com.example.workflow.engine.builder.NodeBuilder
+import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.node.NodeState
 
 class DataFlowManagerImpl(
@@ -12,19 +12,19 @@ class DataFlowManagerImpl(
         dataFlowExecutor.process(data)
     }
 
-    override fun execute(nodeBuilder: NodeBuilder) {
-        dataFlowExecutor.process(nodeBuilder)
+    override fun execute(node: Node) {
+        dataFlowExecutor.process(node)
     }
 
-    override fun updateNodeState(newNodeState: NodeState, nodeBuilder: NodeBuilder) {
+    override fun updateNodeState(newNodeState: NodeState, node: Node) {
 
-        val lastState = nodeBuilder.getNodeContract().getNodeState()
-        nodeBuilder.getNodeContract().setNodeState(newNodeState)
+        val lastState = node.getNodeContract().getNodeState()
+        node.getNodeContract().setNodeState(newNodeState)
 
         if (lastState != newNodeState) {
             // if state changes and previous state was WAITING (Async) then process the outgoing nodes explicitly
             if (lastState == NodeState.WAITING) {
-                execute(nodeBuilder.getNodeContract().getNodeData())
+                execute(node.getNodeContract().getNodeData())
             }
         }
     }
@@ -33,7 +33,7 @@ class DataFlowManagerImpl(
         dataFlowExecutor.traceException()
     }
 
-    override fun traceWorkFlowStatus(nodeBuilder: NodeBuilder) {
-        dataFlowExecutor.traceException(nodeBuilder)
+    override fun traceWorkFlowStatus(node: Node) {
+        dataFlowExecutor.traceException(node)
     }
 }

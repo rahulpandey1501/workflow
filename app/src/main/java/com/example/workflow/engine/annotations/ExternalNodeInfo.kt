@@ -4,8 +4,6 @@ import com.example.workflow.engine.dataflow.Data
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS)
-annotation class NodeBuilderInfo(
-    val consumes: Array<KClass<out Data>>,
-    val optional: Array<KClass<out Data>>,
-    val produce: KClass<out Data>
+annotation class ExternalNodeInfo(
+    val data: KClass<out Data>
 )

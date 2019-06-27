@@ -1,7 +1,8 @@
 package com.example.workflow.engine
 
-import com.example.workflow.engine.annotations.NodeBuilderInfo
-import com.example.workflow.engine.builder.NodeBuilder
+import com.example.workflow.engine.annotations.ExternalNodeInfo
+import com.example.workflow.engine.annotations.NodeInfo
+import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.dataflow.Data
 import kotlin.reflect.KClass
 
@@ -13,13 +14,32 @@ object Utils {
 
     fun getName(data: Data) = getName(data.javaClass)
 
-    fun getName(nodeBuilder: NodeBuilder): String = getName(nodeBuilder.javaClass)
+    fun getName(node: Node): String = getName(node.javaClass)
 
-    fun getBuilderAnnotation(nodeBuilder: NodeBuilder): NodeBuilderInfo {
-        return getBuilderAnnotation(nodeBuilder.javaClass)
+    private fun getNodeInfoAnnotation(clazz: Class<out Node>): NodeInfo {
+        return clazz.getAnnotation(NodeInfo::class.java)
     }
 
-    fun getBuilderAnnotation(clazz: Class<out NodeBuilder>): NodeBuilderInfo {
-        return clazz.getAnnotation(NodeBuilderInfo::class.java)
+    private fun getExternalNodeInfoAnnotation(clazz: Class<out Node>): ExternalNodeInfo {
+        return clazz.getAnnotation(ExternalNodeInfo::class.java)
+    }
+
+    fun getNodeConsumers(node: Node): Array<KClass<out Data>> {
+        return if (node.isExternalNode()) {
+            arrayOf()
+
+        } else {
+            getNodeInfoAnnotation(node.javaClass).consumes
+        }
+    }
+
+    fun getNodeProduce(node: Node): KClass<out Data> {
+        return if (node.isExternalNode()) {
+            val externalNodeInfo = getExternalNodeInfoAnnotation(node.javaClass)
+            externalNodeInfo.data
+
+        } else {
+            getNodeInfoAnnotation(node.javaClass).produce
+        }
     }
 }

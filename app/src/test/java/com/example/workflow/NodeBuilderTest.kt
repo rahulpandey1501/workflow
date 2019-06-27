@@ -1,17 +1,17 @@
 package com.example.workflow
 
-import com.example.workflow.engine.annotations.NodeBuilderInfo
-import com.example.workflow.engine.builder.NodeBuilder
+import com.example.workflow.engine.annotations.NodeInfo
+import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.node.NodeMeta
 import com.example.workflow.engine.node.NodeState
 import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 
-@NodeBuilderInfo(
+@NodeInfo(
     consumes = [TestData0::class],
     produce = TestDataA::class,
     optional = []
 )
-class NodeBuilderA : NodeBuilder() {
+class NodeA : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
         val incomingData = callback.getData(TestData0::class)
@@ -37,8 +37,8 @@ class NodeBuilderA : NodeBuilder() {
     }
 }
 
-@NodeBuilderInfo(consumes = [TestDataA::class], produce = TestDataB::class, optional = [])
-class NodeBuilderB : NodeBuilder() {
+@NodeInfo(consumes = [TestDataA::class], produce = TestDataB::class, optional = [])
+class NodeB : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 
@@ -66,8 +66,8 @@ class NodeBuilderB : NodeBuilder() {
 
 }
 
-@NodeBuilderInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, optional = [])
-class NodeBuilderC : NodeBuilder() {
+@NodeInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, optional = [])
+class NodeC : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 

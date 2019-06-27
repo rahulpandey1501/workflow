@@ -2,7 +2,7 @@ package com.example.workflow.engine.dataflow
 
 import android.util.Log
 import com.example.workflow.engine.Utils
-import com.example.workflow.engine.builder.NodeBuilder
+import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.helper.DataManagerHelper
 import com.example.workflow.engine.node.NodeState
 import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
@@ -13,19 +13,35 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
 
     private val nodeCallback: NodeProcessorCallback = NodeProcessorCallback(this)
 
-    fun process(nodeBuilder: NodeBuilder) {
-        processNodeBuilders(nodeBuilder.getOutgoingNode())
+    /**
+        To process a particular node
+     */
+    fun process(node: Node) {
+        processNodes(listOf(node))
     }
 
+    /**
+        Process the data, process the dependent nodes on data as the data changes (output of some node)
+     */
     fun process(data: Data) {
-        dataManagerHelper.addNodeData(data)
-        dataManagerHelper.getOutgoingNodes(data)?.let { processNodeBuilders(it) }
+        with(dataManagerHelper) {
+
+            addNodeData(data)
+
+            val node = getNode(data.javaClass)
+            if (node.isExternalNode()) {
+                process(node)
+
+            } else {
+                getOutgoingNodes(data)?.let { processNodes(it) }
+            }
+        }
     }
 
-    private fun processNodeBuilders(outgoingNodes: Collection<NodeBuilder>) {
+    private fun processNodes(nodes: Collection<Node>) {
 
-        val queue = ConcurrentLinkedQueue<NodeBuilder>()
-        queue.addAll(outgoingNodes.distinct())
+        val queue = ConcurrentLinkedQueue<Node>()
+        queue.addAll(nodes.distinct())
 
         while (queue.isNotEmpty()) {
             val nodeBuilder = queue.remove()
@@ -50,28 +66,29 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
         }
     }
 
-    private fun shouldProcessNode(nodeBuilder: NodeBuilder): Boolean {
+    private fun shouldProcessNode(node: Node): Boolean {
         var propagation = true
 
         // check for valid incoming inputs
-        nodeBuilder.getIncomingNodes().forEach {
+        node.getIncomingNodes().forEach {
             if (it.getNodeContract().getNodeState() != NodeState.VALID) {
                 propagation = false
                 return@forEach
             }
         }
-        return propagation
+
+        return if (node.isExternalNode()) true else propagation
     }
 
-    private fun shouldInvalidateDependantNodes(nodeBuilder: NodeBuilder, nodeState: NodeState): Boolean {
-        return !shouldProcessNode(nodeBuilder) && nodeState == NodeState.VALID
+    private fun shouldInvalidateDependantNodes(node: Node, nodeState: NodeState): Boolean {
+        return !shouldProcessNode(node) && nodeState == NodeState.VALID
     }
 
-    fun traceException(traceNodeBuilder: NodeBuilder? = null) {
+    fun traceException(traceNode: Node? = null) {
 
-        val visitedNode = mutableSetOf<NodeBuilder>()
-        val givenNode = traceNodeBuilder ?: dataManagerHelper.getResultNode()
-        val queue = LinkedList<NodeBuilder>()
+        val visitedNode = mutableSetOf<Node>()
+        val givenNode = traceNode ?: dataManagerHelper.getResultNode()
+        val queue = LinkedList<Node>()
         queue.add(givenNode)
         visitedNode.add(givenNode)
 
@@ -88,9 +105,9 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
         }
     }
 
-    private fun propagateNodeState(parentNode: NodeBuilder, nodeState: NodeState) {
-        val queue = ConcurrentLinkedQueue<NodeBuilder>()
-        val nodeBuilderSet = hashSetOf<NodeBuilder>()
+    private fun propagateNodeState(parentNode: Node, nodeState: NodeState) {
+        val queue = ConcurrentLinkedQueue<Node>()
+        val nodeBuilderSet = hashSetOf<Node>()
         queue.add(parentNode)
         nodeBuilderSet.add(parentNode)
 
