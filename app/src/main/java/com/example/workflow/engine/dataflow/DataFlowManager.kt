@@ -1,5 +1,6 @@
 package com.example.workflow.engine.dataflow
 
+import com.example.workflow.engine.node.Data
 import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.node.NodeState
 

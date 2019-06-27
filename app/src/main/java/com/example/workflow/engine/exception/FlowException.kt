@@ -6,5 +6,5 @@ import com.example.workflow.engine.node.Node
 
 class FlowException : BaseException {
     constructor(message: String) : super(message)
-    constructor(node: Node) : this("Flow exception occurred on node ${Utils.getName(node.javaClass)}")
+    constructor(node: Node) : this("Flow exception occurred on node ${Utils.getNodeId(node)}")
 }

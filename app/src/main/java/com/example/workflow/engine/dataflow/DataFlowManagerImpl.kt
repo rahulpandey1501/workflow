@@ -1,5 +1,6 @@
 package com.example.workflow.engine.dataflow
 
+import com.example.workflow.engine.node.Data
 import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.node.NodeState
 
@@ -30,10 +31,10 @@ class DataFlowManagerImpl(
     }
 
     override fun traceWorkFlowStatus() {
-        dataFlowExecutor.traceException()
+        dataFlowExecutor.trackWorkFlow()
     }
 
     override fun traceWorkFlowStatus(node: Node) {
-        dataFlowExecutor.traceException(node)
+        dataFlowExecutor.trackWorkFlow(node)
     }
 }

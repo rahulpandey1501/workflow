@@ -2,20 +2,17 @@ package com.example.workflow.engine.nodeprocessorcontract
 
 import android.util.Log
 import com.example.workflow.engine.Utils
-import com.example.workflow.engine.node.Node
-import com.example.workflow.engine.dataflow.Data
 import com.example.workflow.engine.dataflow.DataFlowExecutor
+import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.node.NodeState
-import kotlin.reflect.KClass
 
-class NodeProcessorCallback(private val dataFlowExecutor: DataFlowExecutor) : INodeProcessContract {
-
-    override fun <T : Data> getData(clazz: KClass<T>): T? {
-        return dataFlowExecutor.dataManagerHelper.getNodeData(clazz)
-    }
+class NodeProcessorCallback(
+    private val dataFlowExecutor: DataFlowExecutor,
+    private val node: Node
+) : INodeProcessContract {
 
     @Synchronized
-    override fun updateNodeStatus(node: Node, nodeState: NodeState, message: String?) {
+    override fun updateNodeStatus(nodeState: NodeState, message: String?) {
 
         log(nodeState, node)
 
@@ -41,7 +38,7 @@ class NodeProcessorCallback(private val dataFlowExecutor: DataFlowExecutor) : IN
     private fun log(newNodeState: NodeState, node: Node) {
         Log.d(
             "workflow",
-            "Process: ${Utils.getName(javaClass)} | previous: ${node.getNodeContract().getNodeState()}  Current: $newNodeState"
+            "Process: ${Utils.getNodeId(node)} | previous: ${node.getNodeContract().getNodeState()}  Current: $newNodeState"
         )
     }
 }

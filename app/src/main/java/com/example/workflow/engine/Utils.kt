@@ -2,19 +2,21 @@ package com.example.workflow.engine
 
 import com.example.workflow.engine.annotations.ExternalNodeInfo
 import com.example.workflow.engine.annotations.NodeInfo
+import com.example.workflow.engine.node.Data
 import com.example.workflow.engine.node.Node
-import com.example.workflow.engine.dataflow.Data
 import kotlin.reflect.KClass
 
 object Utils {
 
-    fun getName(clazz: Class<*>): String = clazz.simpleName
+    private fun getClassName(clazz: Class<*>): String = clazz.simpleName
 
-    fun getName(clazz: KClass<out Data>): String = getName(clazz.java)
+    fun getClassName(data: Data): String = getClassName(data.javaClass)
 
-    fun getName(data: Data) = getName(data.javaClass)
+    fun getClassName(clazz: KClass<out Data>): String = getClassName(clazz.java)
 
-    fun getName(node: Node): String = getName(node.javaClass)
+    fun getNodeId(node: Node) = getClassName(node.javaClass)
+
+    fun getNodeId(clazz: KClass<out Node>) = getClassName(clazz.java)
 
     private fun getNodeInfoAnnotation(clazz: Class<out Node>): NodeInfo {
         return clazz.getAnnotation(NodeInfo::class.java)
@@ -24,7 +26,7 @@ object Utils {
         return clazz.getAnnotation(ExternalNodeInfo::class.java)
     }
 
-    fun getNodeConsumers(node: Node): Array<KClass<out Data>> {
+    fun getNodeConsumers(node: Node): Array<KClass<out Node>> {
         return if (node.isExternalNode()) {
             arrayOf()
 

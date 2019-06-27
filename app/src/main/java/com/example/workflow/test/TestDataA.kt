@@ -1,8 +1,8 @@
 package com.example.workflow.test
 
-import com.example.workflow.engine.dataflow.DataAdapter
+import com.example.workflow.engine.node.Data
 
-class TestData0 : DataAdapter(TestData0::class) {
+class TestData0 : Data() {
 
     var test1: String? = "Hello"
     var test2: String? = "World"
@@ -12,7 +12,7 @@ class TestData0 : DataAdapter(TestData0::class) {
     }
 }
 
-class TestDataA : DataAdapter(TestDataA::class) {
+class TestDataA : Data() {
 
     var test1: String? = null
     var test2: String? = null
@@ -22,7 +22,7 @@ class TestDataA : DataAdapter(TestDataA::class) {
     }
 }
 
-class TestDataB : DataAdapter(TestDataB::class) {
+class TestDataB : Data() {
 
     var test1: String? = null
     var test2: String? = null
@@ -32,7 +32,7 @@ class TestDataB : DataAdapter(TestDataB::class) {
     }
 }
 
-class TestDataC : DataAdapter(TestDataC::class) {
+class TestDataC : Data() {
 
     var test1: String? = null
     var test2: String? = null

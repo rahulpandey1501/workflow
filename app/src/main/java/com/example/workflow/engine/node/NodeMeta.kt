@@ -1,7 +1,5 @@
 package com.example.workflow.engine.node
 
-import com.example.workflow.engine.dataflow.Data
-
 enum class NodeState { IDLE, VALID, INVALID, WAITING }
 
 class NodeMeta(var result: Data? = null) {
@@ -10,6 +8,8 @@ class NodeMeta(var result: Data? = null) {
 }
 
 class NodeNavigator {
-    var incoming: MutableMap<String, Node> = hashMapOf()
-    var outgoing: MutableMap<String, Node> = hashMapOf()
+//    var incoming: MutableSet<Node> = hashSetOf()
+//    var outgoing: MutableSet<Node> = hashSetOf()
+    var incoming: HashMap<String, Node> = hashMapOf()
+    var outgoing: HashMap<String, Node> = hashMapOf()
 }

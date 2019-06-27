@@ -12,13 +12,13 @@ import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 @ExternalNodeInfo(data = TestData0::class)
 class ExternalNode0 : ExternalNode() {
 
-    override fun process(callback: NodeProcessorCallback)  {
+    override fun process(callback: NodeProcessorCallback) {
 
         val result = getResult<TestData0>()
 
         val nodeState = if (result.test2 == null || result.test1 == null) NodeState.INVALID else NodeState.VALID
 
-        callback.updateNodeStatus(this, nodeState)
+        callback.updateNodeStatus(nodeState)
     }
 
     override fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta) {
@@ -26,29 +26,28 @@ class ExternalNode0 : ExternalNode() {
     }
 }
 
-
 @NodeInfo(
-    consumes = [TestData0::class],
-    produce = TestDataA::class,
-    optional = []
+    consumes = [ExternalNode0::class],
+    produce = TestDataA::class
 )
 class NodeA : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
-        val incomingData = callback.getData(TestData0::class)
 
-        if (null == incomingData?.test1 || null == incomingData.test2) {
-            callback.updateNodeStatus(this, NodeState.INVALID)
+        val incomingData = getData<TestData0>(ExternalNode0::class)
+
+        if (null == incomingData.test1 || null == incomingData.test2) {
+            callback.updateNodeStatus(NodeState.INVALID)
 
         } else {
-            callback.updateNodeStatus(this, NodeState.WAITING, "Async call going for OfferApplicability")
+            callback.updateNodeStatus(NodeState.WAITING, "Async call going for OfferApplicability")
 
             Thread(Runnable {
                 val result = getResult<TestDataA>()
                 Thread.sleep(500)
                 result.test1 = "HelloFrom_A"
                 result.test2 = "WorldFrom_A"
-                callback.updateNodeStatus(this, NodeState.VALID)
+                callback.updateNodeStatus(NodeState.VALID)
             }).start()
         }
     }
@@ -57,25 +56,25 @@ class NodeA : Node() {
     }
 }
 
-@NodeInfo(consumes = [TestDataA::class], produce = TestDataB::class, optional = [])
+@NodeInfo(consumes = [NodeA::class], produce = TestDataB::class)
 class NodeB : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 
-        val incomingData = callback.getData(TestDataA::class)
+        val incomingData = getData<TestDataA>(NodeA::class)
 
-        if (null == incomingData?.test1 || null == incomingData.test2) {
-            callback.updateNodeStatus(this, NodeState.INVALID)
+        if (null == incomingData.test1 || null == incomingData.test2) {
+            callback.updateNodeStatus(NodeState.INVALID)
 
         } else {
-            callback.updateNodeStatus(this, NodeState.WAITING)
+            callback.updateNodeStatus(NodeState.WAITING)
 
             Thread(Runnable {
                 Thread.sleep(500)
                 val result = getResult<TestDataB>()
                 result.test1 = "HelloFrom_B"
                 result.test2 = "WorldFrom_B"
-                callback.updateNodeStatus(this, NodeState.VALID)
+                callback.updateNodeStatus(NodeState.VALID)
             }).start()
         }
     }
@@ -85,22 +84,22 @@ class NodeB : Node() {
 
 }
 
-@NodeInfo(consumes = [TestDataA::class, TestDataB::class], produce = TestDataC::class, optional = [])
+@NodeInfo(consumes = [NodeA::class, NodeB::class], produce = TestDataC::class)
 class NodeC : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 
-        val incomingDataA = callback.getData(TestDataA::class)
-        val incomingDataB = callback.getData(TestDataB::class)
+        val incomingDataA = getData<TestDataA>(NodeA::class)
+        val incomingDataB = getData<TestDataB>(NodeB::class)
 
-        if (null == incomingDataA?.test1 || null == incomingDataA.test2 || null == incomingDataB?.test1 || null == incomingDataB.test2) {
-            callback.updateNodeStatus(this, NodeState.INVALID)
+        if (null == incomingDataA.test1 || null == incomingDataA.test2 || null == incomingDataB.test1 || null == incomingDataB.test2) {
+            callback.updateNodeStatus(NodeState.INVALID)
 
         } else {
             val result = getResult<TestDataC>()
             result.test1 = "HelloFrom_C"
             result.test2 = "WorldFrom_C"
-            callback.updateNodeStatus(this, NodeState.VALID)
+            callback.updateNodeStatus(NodeState.VALID)
         }
     }
 

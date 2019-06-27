@@ -1,8 +1,9 @@
 package com.example.workflow.engine.node
 
 import com.example.workflow.engine.Utils
-import com.example.workflow.engine.dataflow.Data
+import com.example.workflow.engine.exception.IllegalSelectionException
 import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
+import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 abstract class Node {
@@ -21,25 +22,31 @@ abstract class Node {
         this.nodeDataContext = NodeDataContext(node, nodeNavigator)
     }
 
-    fun getId() = Utils.getName(this)
+    fun getId() = Utils.getNodeId(this)
 
     fun getNodeContract(): NodeContract {
         return nodeDataContext
     }
 
-    fun <T: Data> getResult(): T = getNodeMeta().result as T
+    fun <T : Data> getResult(): T = getNodeMeta().result as T
 
     fun getNodeMeta(): NodeMeta = nodeDataContext.getNodeMeta()
 
     fun getIncomingNodes(): MutableCollection<Node> {
-        return nodeDataContext.getIncomingNodes()
+        return nodeDataContext.getIncomingNodes().values
     }
 
-    fun getOutgoingNode(): MutableCollection<Node> {
-        return nodeDataContext.getOutgoingNodes()
+    fun getOutgoingNodes(): MutableCollection<Node> {
+        return nodeDataContext.getOutgoingNodes().values
     }
 
     fun isTargetNode() = isTargetNode
 
     open fun isExternalNode() = false
+
+    fun <T : Data> getData(clazz: KClass<out Node>): T {
+        val incomingNode = nodeDataContext.getIncomingNodes()[Utils.getNodeId(clazz)]
+            ?: throw IllegalSelectionException("Node: ${Utils.getNodeId(clazz)} not found in incoming of ${Utils.getNodeId(this)}")
+        return incomingNode.getResult()
+    }
 }

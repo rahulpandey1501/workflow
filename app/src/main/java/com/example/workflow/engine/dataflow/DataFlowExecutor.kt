@@ -4,14 +4,13 @@ import android.util.Log
 import com.example.workflow.engine.Utils
 import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.helper.DataManagerHelper
+import com.example.workflow.engine.node.Data
 import com.example.workflow.engine.node.NodeState
 import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
-
-    private val nodeCallback: NodeProcessorCallback = NodeProcessorCallback(this)
 
     /**
         To process a particular node
@@ -26,14 +25,13 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
     fun process(data: Data) {
         with(dataManagerHelper) {
 
-            addNodeData(data)
+            val node = getNode(data)
 
-            val node = getNode(data.javaClass)
             if (node.isExternalNode()) {
                 process(node)
 
             } else {
-                getOutgoingNodes(data)?.let { processNodes(it) }
+                processNodes(node.getOutgoingNodes())
             }
         }
     }
@@ -51,8 +49,8 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
                 val lastState = nodeContract.getNodeState()
 
                 if (shouldProcessNode(nodeBuilder)) {
-                    process(nodeCallback)
-                    queue.addAll(getOutgoingNode())
+                    process(NodeProcessorCallback(this@DataFlowExecutor, nodeBuilder))
+                    queue.addAll(getOutgoingNodes())
 
                 } else if (shouldInvalidateDependantNodes(nodeBuilder, lastState)) {
                     propagateNodeState(nodeBuilder, NodeState.INVALID)
@@ -60,7 +58,7 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
 
                 if (nodeBuilder.isTargetNode() && nodeContract.getNodeState() == NodeState.VALID) {
                     Log.d("Workflow", "Workflow completed with the result ${nodeContract.getNodeData()}")
-                    traceException()
+                    trackWorkFlow()
                 }
             }
         }
@@ -84,10 +82,10 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
         return !shouldProcessNode(node) && nodeState == NodeState.VALID
     }
 
-    fun traceException(traceNode: Node? = null) {
+    fun trackWorkFlow(traceNode: Node? = null) {
 
         val visitedNode = mutableSetOf<Node>()
-        val givenNode = traceNode ?: dataManagerHelper.getResultNode()
+        val givenNode = traceNode ?: dataManagerHelper.getTargetNode()
         val queue = LinkedList<Node>()
         queue.add(givenNode)
         visitedNode.add(givenNode)
@@ -96,7 +94,7 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
             val nodeBuilder = queue.remove()
 
             Log.d(
-                "Workflow", "Node: ${Utils.getName(nodeBuilder.javaClass)} " +
+                "workflow", "Node: ${Utils.getNodeId(nodeBuilder)} " +
                         "| Status: ${nodeBuilder.getNodeContract().getNodeState()} | ${nodeBuilder.getNodeContract().getNodeMessage()}"
             )
 
@@ -113,8 +111,8 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
 
         while (queue.isNotEmpty()) {
             val nodeBuilder = queue.remove()
-            nodeBuilderSet.addAll(nodeBuilder.getOutgoingNode())
-            queue.addAll(nodeBuilder.getOutgoingNode())
+            nodeBuilderSet.addAll(nodeBuilder.getOutgoingNodes())
+            queue.addAll(nodeBuilder.getOutgoingNodes())
         }
 
         nodeBuilderSet.forEach {
