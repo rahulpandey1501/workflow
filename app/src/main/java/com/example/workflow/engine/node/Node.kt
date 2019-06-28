@@ -28,7 +28,7 @@ abstract class Node {
         return nodeDataContext
     }
 
-    fun <T : Data> getResult(): T = getNodeMeta().result as T
+    fun <T : Data> getData(): T = getNodeMeta().result as T
 
     fun getNodeMeta(): NodeMeta = nodeDataContext.getNodeMeta()
 
@@ -44,9 +44,9 @@ abstract class Node {
 
     open fun isExternalNode() = false
 
-    fun <T : Data> getData(clazz: KClass<out Node>): T {
+    fun <T : Data> getConsumer(clazz: KClass<out Node>): T {
         val incomingNode = nodeDataContext.getIncomingNodes()[Utils.getNodeId(clazz)]
             ?: throw IllegalSelectionException("Node: ${Utils.getNodeId(clazz)} not found in incoming of ${Utils.getNodeId(this)}")
-        return incomingNode.getResult()
+        return incomingNode.getData()
     }
 }

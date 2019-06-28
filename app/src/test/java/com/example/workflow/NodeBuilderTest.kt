@@ -17,7 +17,7 @@ class ExternalNode0 : ExternalNode() {
 
     override fun process(callback: NodeProcessorCallback) {
 
-        val result = getResult<TestData0>()
+        val result = getData<TestData0>()
 
         val nodeState = if (result.test2 == null || result.test1 == null) NodeState.INVALID else NodeState.VALID
 
@@ -37,7 +37,7 @@ class NodeA : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 
-        val incomingData = getData<TestData0>(ExternalNode0::class)
+        val incomingData = getConsumer<TestData0>(ExternalNode0::class)
 
         if (null == incomingData.test1 || null == incomingData.test2) {
             callback.updateNodeStatus(NodeState.INVALID)
@@ -46,7 +46,7 @@ class NodeA : Node() {
             callback.updateNodeStatus(NodeState.WAITING, "Async call going for OfferApplicability")
 
             Thread(Runnable {
-                val result = getResult<TestDataA>()
+                val result = getData<TestDataA>()
                 Thread.sleep(500)
                 result.test1 = "HelloFrom_A"
                 result.test2 = "WorldFrom_A"
@@ -64,7 +64,7 @@ class NodeB : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 
-        val incomingData = getData<TestDataA>(NodeA::class)
+        val incomingData = getConsumer<TestDataA>(NodeA::class)
 
         if (null == incomingData.test1 || null == incomingData.test2) {
             callback.updateNodeStatus(NodeState.INVALID)
@@ -74,7 +74,7 @@ class NodeB : Node() {
 
             Thread(Runnable {
                 Thread.sleep(500)
-                val result = getResult<TestDataB>()
+                val result = getData<TestDataB>()
                 result.test1 = "HelloFrom_B"
                 result.test2 = "WorldFrom_B"
                 callback.updateNodeStatus(NodeState.VALID)
@@ -92,14 +92,14 @@ class NodeC : Node() {
 
     override fun process(callback: NodeProcessorCallback) {
 
-        val incomingDataA = getData<TestDataA>(NodeA::class)
-        val incomingDataB = getData<TestDataB>(NodeB::class)
+        val incomingDataA = getConsumer<TestDataA>(NodeA::class)
+        val incomingDataB = getConsumer<TestDataB>(NodeB::class)
 
         if (null == incomingDataA.test1 || null == incomingDataA.test2 || null == incomingDataB.test1 || null == incomingDataB.test2) {
             callback.updateNodeStatus(NodeState.INVALID)
 
         } else {
-            val result = getResult<TestDataC>()
+            val result = getData<TestDataC>()
             result.test1 = "HelloFrom_C"
             result.test2 = "WorldFrom_C"
             callback.updateNodeStatus(NodeState.VALID)

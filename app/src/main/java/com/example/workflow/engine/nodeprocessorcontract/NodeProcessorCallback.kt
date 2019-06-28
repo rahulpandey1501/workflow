@@ -18,11 +18,11 @@ class NodeProcessorCallback(
 
         node.getNodeContract().setNodeStateMessage(message)
         node.onStatusUpdated(nodeState, node.getNodeMeta())
-        updateNodeState(nodeState, node)
+        updateNodeStatus(nodeState, node)
     }
 
     @Synchronized
-    private fun updateNodeState(newNodeState: NodeState, node: Node) {
+    private fun updateNodeStatus(newNodeState: NodeState, node: Node) {
 
         val lastState = node.getNodeContract().getNodeState()
         node.getNodeContract().setNodeState(newNodeState)

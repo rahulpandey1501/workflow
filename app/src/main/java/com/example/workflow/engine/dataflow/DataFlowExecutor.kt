@@ -58,7 +58,6 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
 
                 if (nodeBuilder.isTargetNode() && nodeContract.getNodeState() == NodeState.VALID) {
                     Log.d("Workflow", "Workflow completed with the result ${nodeContract.getNodeData()}")
-                    trackWorkFlow()
                 }
             }
         }
