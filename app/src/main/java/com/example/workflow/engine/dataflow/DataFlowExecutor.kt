@@ -6,59 +6,58 @@ import com.example.workflow.engine.node.Node
 import com.example.workflow.engine.helper.DataManagerHelper
 import com.example.workflow.engine.node.Data
 import com.example.workflow.engine.node.NodeState
-import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
+import com.example.workflow.engine.nodeprocessor.NodeProcessorListener
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
+class DataFlowExecutor(private val dataManager: DataManagerHelper) {
+
+    private val nodeProcessCallback = NodeProcessorListener(this@DataFlowExecutor)
 
     /**
-        To process a particular node
-     */
-    fun process(node: Node) {
-        processNodes(listOf(node))
-    }
-
-    /**
-        Process the data, process the dependent nodes on data as the data changes (output of some node)
+    Process the data, process the dependent nodes on data as the data changes (output of some node)
      */
     fun process(data: Data) {
-        with(dataManagerHelper) {
+        val node = dataManager.getNode(data)
+        if (node.isExternalNode()) {
+            processNode(node)
 
-            val node = getNode(data)
-
-            if (node.isExternalNode()) {
-                process(node)
-
-            } else {
-                processNodes(node.getOutgoingNodes())
-            }
+        } else {
+            processNodes(node.getOutgoingNodes())
         }
     }
 
+    /**
+    To process a particular node
+     */
+    fun processNode(node: Node) {
+        processNodes(listOf(node))
+    }
+
+    @Synchronized
     private fun processNodes(nodes: Collection<Node>) {
 
         val queue = ConcurrentLinkedQueue<Node>()
         queue.addAll(nodes.distinct())
 
         while (queue.isNotEmpty()) {
-            val nodeBuilder = queue.remove()
+            val node = queue.remove()
+            val nodeContract = node.getNodeContract()
 
-            with(nodeBuilder) {
-                val nodeContract = getNodeContract()
-                val lastState = nodeContract.getNodeState()
 
-                if (shouldProcessNode(nodeBuilder)) {
-                    process(NodeProcessorCallback(this@DataFlowExecutor, nodeBuilder))
-                    queue.addAll(getOutgoingNodes())
-
-                } else if (shouldInvalidateDependantNodes(nodeBuilder, lastState)) {
-                    propagateNodeState(nodeBuilder, NodeState.INVALID)
+            if (shouldProcessNode(node)) {
+                node.process { nodeState: NodeState, message: String? ->
+                    nodeProcessCallback.updateNodeStatus(node, nodeState, message)
                 }
+                queue.addAll(node.getOutgoingNodes())
 
-                if (nodeBuilder.isTargetNode() && nodeContract.getNodeState() == NodeState.VALID) {
-                    Log.d("Workflow", "Workflow completed with the result ${nodeContract.getNodeData()}")
-                }
+            } else if (nodeContract.getNodeState() != NodeState.INVALID) {
+                Log.d("workflow: state", node.getId())
+                nodeProcessCallback.updateNodeStatus(node, NodeState.INVALID, nodeContract.getNodeMessage())
+            }
+
+            if (node.isTargetNode() && nodeContract.getNodeState() == NodeState.VALID) {
+                Log.d("Workflow", "Workflow completed with the result ${nodeContract.getNodeData()}")
             }
         }
     }
@@ -77,14 +76,10 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
         return if (node.isExternalNode()) true else propagation
     }
 
-    private fun shouldInvalidateDependantNodes(node: Node, nodeState: NodeState): Boolean {
-        return !shouldProcessNode(node) && nodeState == NodeState.VALID
-    }
-
     fun trackWorkFlow(traceNode: Node? = null) {
 
         val visitedNode = mutableSetOf<Node>()
-        val givenNode = traceNode ?: dataManagerHelper.getTargetNode()
+        val givenNode = traceNode ?: dataManager.getTargetNode()
         val queue = LinkedList<Node>()
         queue.add(givenNode)
         visitedNode.add(givenNode)
@@ -93,30 +88,12 @@ class DataFlowExecutor(val dataManagerHelper: DataManagerHelper) {
             val nodeBuilder = queue.remove()
 
             Log.d(
-                "workflow", "Node: ${Utils.getNodeId(nodeBuilder)} " +
+                "workflow: trace", "Node: ${Utils.getNodeId(nodeBuilder)} " +
                         "| Status: ${nodeBuilder.getNodeContract().getNodeState()} | ${nodeBuilder.getNodeContract().getNodeMessage()}"
             )
 
             queue.addAll(nodeBuilder.getIncomingNodes().minus(visitedNode.toList()))
             visitedNode.addAll(nodeBuilder.getIncomingNodes())
-        }
-    }
-
-    private fun propagateNodeState(parentNode: Node, nodeState: NodeState) {
-        val queue = ConcurrentLinkedQueue<Node>()
-        val nodeBuilderSet = hashSetOf<Node>()
-        queue.add(parentNode)
-        nodeBuilderSet.add(parentNode)
-
-        while (queue.isNotEmpty()) {
-            val nodeBuilder = queue.remove()
-            nodeBuilderSet.addAll(nodeBuilder.getOutgoingNodes())
-            queue.addAll(nodeBuilder.getOutgoingNodes())
-        }
-
-        nodeBuilderSet.forEach {
-            it.getNodeContract().setNodeState(nodeState)
-            it.onStatusUpdated(nodeState, it.getNodeContract().getNodeMeta())
         }
     }
 }

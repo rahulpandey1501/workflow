@@ -2,7 +2,6 @@ package com.example.workflow.engine.node
 
 import com.example.workflow.engine.Utils
 import com.example.workflow.engine.exception.IllegalSelectionException
-import com.example.workflow.engine.nodeprocessorcontract.NodeProcessorCallback
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -13,7 +12,7 @@ abstract class Node {
 
     abstract fun onStatusUpdated(nodeState: NodeState, nodeMeta: NodeMeta)
 
-    abstract fun process(callback: NodeProcessorCallback)
+    abstract fun process(callback: (NodeState, String?) -> Unit)
 
     fun init(producer: Data?, isTargetNode: Boolean) {
         val node = NodeMeta(producer)

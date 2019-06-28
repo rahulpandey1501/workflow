@@ -1,5 +1,6 @@
 package com.example.workflow.test
 
+import android.util.Log
 import com.example.workflow.engine.builder.DataFlowBuilder
 
 class ExecutionTest {
@@ -23,19 +24,27 @@ class ExecutionTest {
 
         Thread {
 
+//            Thread.sleep(3000)
+//            testDataA.test1 = null
+//            dataFlowManager.execute(testDataA)
+//
             Thread.sleep(3000)
-            testDataA.test1 = null
+            testDataA.test1 = "INVALID"
+            dataFlowManager.traceWorkFlowStatus()
+            Log.d("workflow", "Testcase 2 for invalid")
             dataFlowManager.execute(testDataA)
 
-            Thread.sleep(1000)
-            testDataB.test1 = null
-            dataFlowManager.execute(testDataA)
+//            Thread.sleep(1000)
+//            testDataA.test1 = "Test1"
+//            testDataB.test1 = "Test2"
+//            dataFlowManager.execute(testDataA)
 
-            Thread.sleep(1000)
-            testDataA.test1 = "Test1"
-            testDataB.test1 = "Test2"
-            dataFlowManager.execute(testDataA)
+        }.start()
 
+
+        Thread {
+            Thread.sleep(4000)
+            dataFlowManager.traceWorkFlowStatus()
         }.start()
     };
 }
